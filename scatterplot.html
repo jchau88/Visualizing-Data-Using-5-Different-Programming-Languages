@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Penguin Scatter Plot</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+</head>
+<body>
+    <!-- File input for the user to select the CSV file -->
+    <input type="file" id="fileInput" accept=".csv" />
+    <div id="plotly-div"></div>
+
+    <script>
+        // Function to handle the file input
+        document.getElementById('fileInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+                
+                // Read the file as text
+                reader.readAsText(file);
+                
+                reader.onload = function(event) {
+                    // Parse the CSV content
+                    const csvData = event.target.result;
+                    const parsedData = d3.csvParse(csvData);
+
+                    // Prepare the data for Plotly
+                    const xValues = parsedData.map(d => parseFloat(d.flipper_length_mm));  // Flipper length (x-axis)
+                    const yValues = parsedData.map(d => parseFloat(d.body_mass_g));  // Body mass (y-axis)
+                    const species = parsedData.map(d => d.species);  // Species for coloring
+                    const billLength = parsedData.map(d => parseFloat(d.bill_length_mm));  // Bill length for size
+
+                    // Create the scatter plot
+                    const trace = {
+                        x: xValues,
+                        y: yValues,
+                        mode: 'markers',
+                        type: 'scatter',
+                        text: species,
+                        marker: {
+                            color: species.map(s => s === 'Adelie' ? 'orange' : (s === 'Chinstrap' ? 'purple' : '#008080')),
+                            size: billLength.map(bl => bl * 2),  // Adjust size of markers
+                            opacity: 0.8
+                        }
+                    };
+
+                    const layout = {
+                        title: 'Penguin Data Scatter Plot',
+                        xaxis: {
+                            title: 'Flipper Length (mm)',
+                            range: [170, 235],  // Adjust range for x-axis
+                            tickmode: 'linear',
+                            dtick: 5
+                        },
+                        yaxis: {
+                            title: 'Body Mass (g)',
+                            range: [2500, 6500],  // Adjust range for y-axis
+                            tickmode: 'linear',
+                            dtick: 500
+                        }
+                    };
+
+                    Plotly.newPlot('plotly-div', [trace], layout);
+                };
+            }
+        });
+    </script>
+</body>
+</html>
